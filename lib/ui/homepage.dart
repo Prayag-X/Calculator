@@ -13,9 +13,26 @@ class _MyHomePageState extends State<MyHomePage> {
   double operand = 0;
   double answer = 0;
   String operatorSelected = "";
+  bool onceAnswerGenerated = false;
+
+  void setForNumber(int i) {
+    if(onceAnswerGenerated){
+      setState(() {
+        value = i.toString();
+        operand = i.toDouble();
+        onceAnswerGenerated = false;
+      });
+    } else {
+      setState(() {
+        value += i.toString();
+        operand = operand * 10 + i;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    double calculatorAreaHeight = MediaQuery.of(context).size.width * 1.7;
     return Scaffold(
       backgroundColor: Color(0xFF151515),
       body: SafeArea(
@@ -29,6 +46,8 @@ class _MyHomePageState extends State<MyHomePage> {
                     const EdgeInsets.symmetric(horizontal: 50.0, vertical: 10),
                 child: Text(
                   value,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                   textAlign: TextAlign.end,
                   style: TextStyle(
                     color: Colors.white,
@@ -39,7 +58,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Container(
               color: Color(0xFF1C1C1C),
-              height: MediaQuery.of(context).size.width * 1.7,
+              height: calculatorAreaHeight,
               width: MediaQuery.of(context).size.width,
               child: GridView(
                 physics: const BouncingScrollPhysics(),
@@ -52,20 +71,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     (i) => CustomCalculatorButton(
                       value: (i + 1).toString(),
                       onTap: () {
-                        setState(() {
-                          value += (i + 1).toString();
-                          operand = operand * 10 + (i + 1);
-                        });
+                        setForNumber(i + 1);
                       },
                     ),
                   ),
                   CustomCalculatorButton(
                     value: 0.toString(),
                     onTap: () {
-                      setState(() {
-                        value += 0.toString();
-                        operand = operand * 10;
-                      });
+                      setForNumber(0);
                     },
                   ),
                   CustomCalculatorButton(
@@ -88,6 +101,8 @@ class _MyHomePageState extends State<MyHomePage> {
                           default:
                             break;
                         }
+                        onceAnswerGenerated = true;
+                        operatorSelected = "";
                         value = answer.toString();
                       });
                     },
@@ -95,6 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   CustomCalculatorButton(
                     value: "+",
                     onTap: () {
+                      if(operatorSelected != "") return;
                       setState(() {
                         value += " + ";
                         answer = operand;
@@ -106,6 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   CustomCalculatorButton(
                     value: "-",
                     onTap: () {
+                      if(operatorSelected != "") return;
                       setState(() {
                         value += " - ";
                         answer = operand;
@@ -117,6 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   CustomCalculatorButton(
                     value: "X",
                     onTap: () {
+                      if(operatorSelected != "") return;
                       setState(() {
                         value += " x ";
                         answer = operand;
@@ -128,12 +146,46 @@ class _MyHomePageState extends State<MyHomePage> {
                   CustomCalculatorButton(
                     value: "/",
                     onTap: () {
+                      if(operatorSelected != "") return;
                       setState(() {
                         value += " / ";
                         answer = operand;
                         operand = 0;
                         operatorSelected = "/";
                       });
+                    },
+                  ),
+
+                  CustomCalculatorButton(
+                    value: "C",
+                    onTap: () {
+                      setState(() {
+                        value = "";
+                        operand = 0;
+                        answer = 0;
+                        operatorSelected = "";
+                        onceAnswerGenerated = false;
+                      });
+                    },
+                  ),
+                  CustomCalculatorButton(
+                    value: "<-",
+                    onTap: () {
+                      print(operand);
+                      if(operatorSelected != "" && operand == 0) {
+                        setState(() {
+                          value  = value.substring(0, value.length - 3);
+                          operatorSelected = "";
+                          operand = answer;
+                        });
+                      } else {
+                        setState(() {
+                          print(operand);
+                          value  = value.substring(0, value.length - 1);
+                          operand = (operand - (operand % 10)) / 10;
+                          print(operand);
+                        });
+                      }
                     },
                   ),
                 ],
@@ -172,3 +224,11 @@ class CustomCalculatorButton extends StatelessWidget {
     );
   }
 }
+
+// 193
+// (193 - 3) / 10
+
+// 193 % 10 = 3
+
+// 19
+// (19 * 10) + 3
